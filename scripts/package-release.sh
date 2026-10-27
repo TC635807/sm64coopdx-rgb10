@@ -2,7 +2,7 @@
 # package-release.sh -- 把构建产物打包成 ArkOS Ports 目录结构（Release 用）
 #
 # 用法:
-#   bash scripts/package-release.sh build/us_pc/sm64coopdx.arm [--version v1.0.0] [--source-root DIR]
+#   bash scripts/package-release.sh build/us_pc/sm64coopdx.arm [--version v1.0.0] [--source-root DIR] [--no-strip]
 #
 # 输出:
 #   dist/sm64coopdx-rgb10-<version>.tar.gz
@@ -21,10 +21,12 @@ set -euo pipefail
 BIN=""
 VERSION="v1.0.0"
 SRCROOT=""
+DO_STRIP=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --version)    VERSION="$2"; shift 2 ;;
     --source-root) SRCROOT="$2"; shift 2 ;;
+    --no-strip)   DO_STRIP=0; shift ;;
     -h|--help)    sed -n '2,22p' "$0"; exit 0 ;;
     -*)           echo "package-release: unknown option $1" >&2; exit 1 ;;
     *)            BIN="$1"; shift ;;
@@ -54,6 +56,15 @@ mkdir -p "$PKG/sm64coopdx"
 echo "==> 复制二进制"
 cp -f "$BIN" "$PKG/sm64coopdx/sm64coopdx"
 chmod 755 "$PKG/sm64coopdx/sm64coopdx"
+if [ "$DO_STRIP" = 1 ]; then
+  STRIP_BIN="${STRIP_BIN:-aarch64-linux-gnu-strip}"
+  if command -v "$STRIP_BIN" >/dev/null 2>&1; then
+    echo "==> strip（$STRIP_BIN）"
+    "$STRIP_BIN" --strip-unneeded "$PKG/sm64coopdx/sm64coopdx"
+  else
+    echo "    warn: 找不到 $STRIP_BIN，保留未 strip 的二进制（可用 STRIP_BIN 指定）" >&2
+  fi
+fi
 
 echo "==> 复制运行时数据（dynos / lang / mods / palettes）"
 for d in dynos lang mods palettes; do

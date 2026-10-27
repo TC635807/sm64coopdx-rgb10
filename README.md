@@ -228,7 +228,7 @@ make TARGET_RPI=1 machine=aarch64 CROSS=aarch64-linux-gnu- -j$(nproc)
 
 ```bash
 bash scripts/package-release.sh build/us_pc/sm64coopdx.arm --version v1.0.0
-# 输出 dist/sm64coopdx-rgb10-v1.0.0.tar.gz
+# 输出 dist/sm64coopdx-rgb10-v1.0.0.tar.gz（默认 strip 到 ~52MB，要调试符号加 --no-strip）
 ```
 
 <a id="pitfalls"></a>

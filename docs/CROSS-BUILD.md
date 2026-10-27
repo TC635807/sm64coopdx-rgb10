@@ -108,6 +108,7 @@ readelf -d $BIN | grep NEEDED
 ```bash
 bash scripts/package-release.sh build/us_pc/sm64coopdx.arm --version v1.0.0
 # 生成 dist/sm64coopdx-rgb10-v1.0.0.tar.gz（binary + dynos/lang/mods/palettes + 启动器 + 默认配置）
+# 脚本默认用 aarch64-linux-gnu-strip 压缩二进制（52 MB）；保留符号用 --no-strip
 ```
 
 ## 备注：哪些东西不入库
