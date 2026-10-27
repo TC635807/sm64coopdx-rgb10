@@ -4,10 +4,10 @@
 
 **把 Super Mario 64 联机版（sm64coopdx v1.5.1）塞进百元级开源掌机 —— RK3326 + Mali-G31 + ArkOS 的 aarch64 / OpenGL ES 2.0 移植**
 
-[![Platform](https://img.shields.io/badge/platform-Powkiddy%20RGB10-2ea44f)]()
-[![OS](https://img.shields.io/badge/OS-ArkOS%202.0-E95420)]()
-[![Arch](https://img.shields.io/badge/arch-aarch64-blue)]()
-[![GPU](https://img.shields.io/badge/GPU-Mali--G31%20%2F%20GLES%202.0-blueviolet)]()
+![Platform](https://img.shields.io/badge/platform-Powkiddy%20RGB10-2ea44f)
+[![OS](https://img.shields.io/badge/OS-ArkOS%202.0-E95420)](https://github.com/christianhaitian/arkos)
+![Arch](https://img.shields.io/badge/arch-aarch64-blue)
+![GPU](https://img.shields.io/badge/GPU-Mali--G31%20%2F%20GLES%202.0-blueviolet)
 [![Upstream](https://img.shields.io/badge/upstream-sm64coopdx%20v1.5.1-important)](https://github.com/coop-deluxe/sm64coopdx)
 [![Release](https://img.shields.io/badge/release-v1.0.0-brightgreen)](https://github.com/TC635807/sm64coopdx-rgb10/releases)
 
