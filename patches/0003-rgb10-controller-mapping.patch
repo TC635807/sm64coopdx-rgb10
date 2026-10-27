@@ -1,0 +1,39 @@
+diff --git a/src/pc/controller/controller_sdl.c b/src/pc/controller/controller_sdl.c
+index 29f48ea..b6d2ef3 100644
+--- a/src/pc/controller/controller_sdl.c
++++ b/src/pc/controller/controller_sdl.c
+@@ -343,6 +343,34 @@ static void controller_sdl_read(OSContPad *pad) {
+ 
+     update_analog_stick(&pad->stick_x, &pad->stick_y, leftx, lefty);
+     update_analog_stick(&pad->ext_stick_x, &pad->ext_stick_y, rightx, righty);
++
++    // RGB10 port:
++    // - D-pad emulates the left stick (character movement); the JPAD bits are stripped
++    //   so the game does not also rotate the camera with them.
++    // - While L (L_TRIG) is held:
++    //     X -> C-Up, Y -> C-Left, A -> C-Right, B -> C-Down (C-stick camera),
++    //     and A/B/X/Y no longer perform their normal actions.
++    {
++        const u32 jpad = pad->button & (U_JPAD | D_JPAD | L_JPAD | R_JPAD);
++        if (jpad != 0) {
++            pad->button &= ~(U_JPAD | D_JPAD | L_JPAD | R_JPAD);
++            if (pad->stick_x == 0 && pad->stick_y == 0) {
++                if (jpad & U_JPAD) { pad->stick_y = 127; }
++                else if (jpad & D_JPAD) { pad->stick_y = -128; }
++                if (jpad & L_JPAD) { pad->stick_x = -128; }
++                else if (jpad & R_JPAD) { pad->stick_x = 127; }
++            }
++        }
++
++        if (pad->button & L_TRIG) {
++            const u32 abxy = pad->button & (A_BUTTON | B_BUTTON | X_BUTTON | Y_BUTTON);
++            pad->button &= ~(A_BUTTON | B_BUTTON | X_BUTTON | Y_BUTTON);
++            if (abxy & X_BUTTON) { pad->button |= U_CBUTTONS; }
++            if (abxy & Y_BUTTON) { pad->button |= L_CBUTTONS; }
++            if (abxy & A_BUTTON) { pad->button |= R_CBUTTONS; }
++            if (abxy & B_BUTTON) { pad->button |= D_CBUTTONS; }
++        }
++    }
+ }
+ 
+ static void controller_sdl_rumble_play(f32 strength, f32 length) {

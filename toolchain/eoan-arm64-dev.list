@@ -1,0 +1,8 @@
+libc6-dev http://old-releases.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.30-0ubuntu2.2_arm64.deb 51e84272d4e95bdcc97b5cc4f541deec
+linux-libc-dev http://old-releases.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.3.0-64.58_arm64.deb 8fed61a985f744e557c36e37ec2988cc
+libsdl2-dev http://old-releases.ubuntu.com/ubuntu/pool/universe/libs/libsdl2/libsdl2-dev_2.0.10+dfsg1-1ubuntu1_arm64.deb dca6c5c3d10beae6eac4a7ca675fd4c6
+libgles2-mesa-dev http://old-releases.ubuntu.com/ubuntu/pool/main/m/mesa/libgles2-mesa-dev_19.2.8-0ubuntu0~19.10.3_arm64.deb a4e693188583f8794cdfbf291ab915c6
+libegl1-mesa-dev http://old-releases.ubuntu.com/ubuntu/pool/main/m/mesa/libegl1-mesa-dev_19.2.8-0ubuntu0~19.10.3_arm64.deb 86fb68dca69792322199165a878611b7
+zlib1g-dev http://old-releases.ubuntu.com/ubuntu/pool/main/z/zlib/zlib1g-dev_1.2.11.dfsg-1ubuntu3_arm64.deb 20257004de6735166654f771046c6f66
+libcurl4-openssl-dev http://old-releases.ubuntu.com/ubuntu/pool/main/c/curl/libcurl4-openssl-dev_7.65.3-1ubuntu3.1_arm64.deb 912153c17fdad7d9ca705d0f995adbe5
+libstdc++-9-dev http://old-releases.ubuntu.com/ubuntu/pool/main/g/gcc-9/libstdc++-9-dev_9.2.1-9ubuntu2_arm64.deb 70c210238ef17173f510bbd342a6ad19

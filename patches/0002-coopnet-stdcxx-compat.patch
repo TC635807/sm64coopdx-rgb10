@@ -1,0 +1,17 @@
+diff --git a/data/coopnet_stdcxx_shim.cpp b/data/coopnet_stdcxx_shim.cpp
+new file mode 100644
+index 0000000..e75112e
+--- /dev/null
++++ b/data/coopnet_stdcxx_shim.cpp
+@@ -0,0 +1,11 @@
++// Compatibility shim: the prebuilt lib/coopnet/linux/libcoopnet-arm64.a was built
++// against a newer libstdc++ (GCC 11+) and references std::__throw_bad_array_new_length(),
++// which does not exist in the device's libstdc++ 6.0.28 (GCC 9). Provide it locally.
++#include <new>
++#include <stdexcept>
++
++namespace std {
++void __throw_bad_array_new_length() {
++    throw std::bad_array_new_length();
++}
++} // namespace std
