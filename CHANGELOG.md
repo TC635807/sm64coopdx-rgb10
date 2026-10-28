@@ -2,6 +2,24 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 风格，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
+## [v1.0.1] - 2026-10-28
+
+修复「玩起来就退不出去」的问题。
+
+### Added
+
+- **退出热键**：任意界面长按 `Select` + `Start` 1.5 秒 → 干净退出回 EmulationStation（`game_exit()`，正常保存配置）。
+- `patches/0004-rgb10-quit-hotkey-and-menu-layout.patch`。
+
+### Fixed
+
+- 主菜单 `Quit` 按钮在 480×320 屏幕上被裁掉（logo + 4 个按钮放不下），导致只能断电重启。
+  现在释放空 header、缩小 logo，`Host` / `Join` / `Options` / `Quit` 四项全部可见可点。
+
+### Changed
+
+- 退出逻辑由输入回调改为「置标志 + 主循环消费」，避免在 SDL 输入回调里直接拆掉 SDL/GFX。
+
 ## [v1.0.0] - 2026-10-27
 
 首个可运行版本：sm64coopdx v1.5.1 在 Powkiddy RGB10（ArkOS 2.0）上完成 aarch64 + GLES2 移植。

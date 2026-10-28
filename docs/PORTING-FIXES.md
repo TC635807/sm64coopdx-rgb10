@@ -1,13 +1,14 @@
 # 移植问题与修复记录
 
 目标：sm64coopdx **v1.5.1** → Powkiddy RGB10 / ArkOS 2.0（RK3326 · aarch64 · Mali-G31 · glibc 2.30）。
-记录 4 个真问题：现象、证据、根因、修复、验证。对应补丁在 [`patches/`](../patches/)。
+记录 5 个真问题：现象、证据、根因、修复、验证。对应补丁在 [`patches/`](../patches/)。
 
 | 补丁 | 内容 |
 |---|---|
 | [`0001-gles2-glsl-es-100-strictness.patch`](../patches/0001-gles2-glsl-es-100-strictness.patch) | Mali 的 GLSL ES 1.00 严格类型检查 |
 | [`0002-coopnet-stdcxx-compat.patch`](../patches/0002-coopnet-stdcxx-compat.patch) | 预编译 libcoopnet 对 GCC11 符号的依赖 |
 | [`0003-rgb10-controller-mapping.patch`](../patches/0003-rgb10-controller-mapping.patch) | RGB10 单摇杆手柄的按键合成 |
+| [`0004-rgb10-quit-hotkey-and-menu-layout.patch`](../patches/0004-rgb10-quit-hotkey-and-menu-layout.patch) | 退出热键 + 主菜单 Quit 被裁切 |
 
 ---
 
@@ -55,6 +56,19 @@
   - `key_x / key_y` 补上手柄按钮 `0x1002 / 0x1003`；
   - `key_dup / ddown / dleft / dright` 绑 D-pad 按钮 `0x100b–0x100e`。
 - **遗留**：`key_z` 同时绑了 X 键（`0x1002`）与 R2 轴（`0x101b`），按住 L1+X 时可能同时触发 Z；介意可删掉 X 列。
+
+## 问题 5：无法退出游戏回前端（主菜单 Quit 被裁掉）
+
+- **现象**：进游戏后只能断电 / 重启才能回到 EmulationStation；主菜单只看到 Host / Join / Options，没有 Quit。
+- **根因**：480×320、`djui_scale=0`（自动 = 0.5）时 DJUI 虚拟屏幕是 960×640，主菜单面板高约 589、body 可视高约 493；
+  而内容高 ≈ logo 275 + 4 × 按钮 50 + flow margin ≈ 571，第 4 个按钮（Quit）被裁到面板外。
+  `Start → Stop Hosting` 能回到主菜单，但主菜单里没有出口，于是只能断电。
+- **修复**（[`0004`](../patches/0004-rgb10-quit-hotkey-and-menu-layout.patch)）：
+  - 主菜单释放空 header（`djui_three_panel_set_min_header_size(panel, 0)`），logo 从 550×275 缩到 420×210；
+    内容高降到 ≈ 506，body 可视约 557 → `Host / Join / Options / Quit` 四项全部可见；
+  - 增加退出热键：长按 `Select` + `Start` 1.5 秒 → 置 `gRgb10QuitRequested`，由主循环调用 `game_exit()`；
+    避免在 SDL 输入回调里直接拆 SDL / GFX（重入风险）。
+- **验证**：v1.0.1 二进制启动正常、无 shader / 断言报错；布局数值与实机菜单一致。
 
 ---
 

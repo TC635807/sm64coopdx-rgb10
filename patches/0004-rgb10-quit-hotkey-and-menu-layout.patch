@@ -1,0 +1,78 @@
+diff --git a/src/pc/controller/controller_sdl.c b/src/pc/controller/controller_sdl.c
+index b6d2ef3..8f170e5 100644
+--- a/src/pc/controller/controller_sdl.c
++++ b/src/pc/controller/controller_sdl.c
+@@ -205,6 +205,9 @@ static inline void update_analog_stick(s8 *stick_x, s8 *stick_y,
+ }
+ 
+ extern s16 gMenuMode;
++// RGB10 port: set by the Select+Start hotkey, consumed by the main loop.
++bool gRgb10QuitRequested = false;
++
+ static void controller_sdl_read(OSContPad *pad) {
+     if (!init_ok) { return; }
+ 
+@@ -344,6 +347,24 @@ static void controller_sdl_read(OSContPad *pad) {
+     update_analog_stick(&pad->stick_x, &pad->stick_y, leftx, lefty);
+     update_analog_stick(&pad->ext_stick_x, &pad->ext_stick_y, rightx, righty);
+ 
++    // RGB10 port: hold Select (BACK) + Start for 1.5 s to quit cleanly back to the
++    // EmulationStation frontend (the on-screen Quit menu is hard to reach on this device).
++    if (sdl_cntrl != NULL) {
++        static u32 quit_hold_start = 0;
++        const bool quit_back  = SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_BACK);
++        const bool quit_start = SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_START);
++        if (quit_back && quit_start) {
++            const u32 now = SDL_GetTicks();
++            if (quit_hold_start == 0) {
++                quit_hold_start = now;
++            } else if ((u32)(now - quit_hold_start) >= 1500) {
++                gRgb10QuitRequested = true;
++            }
++        } else {
++            quit_hold_start = 0;
++        }
++    }
++
+     // RGB10 port:
+     // - D-pad emulates the left stick (character movement); the JPAD bits are stripped
+     //   so the game does not also rotate the camera with them.
+diff --git a/src/pc/djui/djui_panel_main.c b/src/pc/djui/djui_panel_main.c
+index 0a849bb..8d2b5bf 100644
+--- a/src/pc/djui/djui_panel_main.c
++++ b/src/pc/djui/djui_panel_main.c
+@@ -26,15 +26,18 @@ static void djui_panel_main_quit(struct DjuiBase* caller) {
+ 
+ void djui_panel_main_create(struct DjuiBase* caller) {
+     struct DjuiThreePanel* panel = djui_panel_menu_create(configExCoopTheme ? "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP" : "", false);
++    // RGB10 port: on a 480x320 screen the logo + 4 buttons do not fit, which used to
++    // clip the Quit button off-screen. Drop the (empty) header space and shrink the logo.
++    djui_three_panel_set_min_header_size(panel, 0);
+     {
+         struct DjuiBase* body = djui_three_panel_get_body(panel);
+         {
+             if (!configExCoopTheme) {
+                 struct DjuiImage* logo = djui_image_create(body, texture_coopdx_logo, 2048, 1024, G_IM_FMT_RGBA, G_IM_SIZ_32b);
+                 if (configDjuiThemeCenter) {
+-                    djui_base_set_size(&logo->base, 550, 275);
++                    djui_base_set_size(&logo->base, 420, 210);
+                 } else {
+-                    djui_base_set_size(&logo->base, 480, 240);
++                    djui_base_set_size(&logo->base, 420, 210);
+                 }
+                 djui_base_set_alignment(&logo->base, DJUI_HALIGN_CENTER, DJUI_VALIGN_TOP);
+                 djui_base_set_location_type(&logo->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
+diff --git a/src/pc/pc_main.c b/src/pc/pc_main.c
+index 0d4f9f7..d769817 100644
+--- a/src/pc/pc_main.c
++++ b/src/pc/pc_main.c
+@@ -615,6 +615,9 @@ int main(int argc, char *argv[]) {
+         debug_context_reset();
+         CTX_BEGIN(CTX_TOTAL);
+         gWindowApi->main_loop(produce_one_frame);
++        // RGB10 port: quit requested by the Select+Start hotkey
++        extern bool gRgb10QuitRequested;
++        if (gRgb10QuitRequested) { game_exit(); }
+ #ifdef DISCORD_SDK
+         discord_update();
+ #endif

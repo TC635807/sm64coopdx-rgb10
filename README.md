@@ -9,7 +9,7 @@
 ![Arch](https://img.shields.io/badge/arch-aarch64-blue)
 ![GPU](https://img.shields.io/badge/GPU-Mali--G31%20%2F%20GLES%202.0-blueviolet)
 [![Upstream](https://img.shields.io/badge/upstream-sm64coopdx%20v1.5.1-important)](https://github.com/coop-deluxe/sm64coopdx)
-[![Release](https://img.shields.io/badge/release-v1.0.0-brightgreen)](https://github.com/TC635807/sm64coopdx-rgb10/releases)
+[![Release](https://img.shields.io/badge/release-v1.0.1-brightgreen)](https://github.com/TC635807/sm64coopdx-rgb10/releases)
 
 **开箱即用的 Ports 包 · 3 个可复现补丁 · 单摇杆手柄的 C 摇杆映射 · 52 FPS @ 480×320**
 
@@ -43,6 +43,7 @@
 - **真正的交叉编译产物**：aarch64 ELF，最高 GLIBC 2.29 / GLIBCXX 3.4.26，只依赖 RGB10 自带的 libMali（GLES2）与 SDL2 2.30；设备端零编译。
 - **单摇杆手柄也能转视角**：RGB10 只有一组 ABXY + 一个摇杆，通过 25 行 SDL 层补丁实现「方向键=移动、按住 L1 + ABXY=C 摇杆」，且按住 L1 时 ABXY 原动作被正确屏蔽。
 - **补丁化、可复现**：上游 v1.5.1 + 3 个 patch，`scripts/apply-patches.sh` 一键应用，构建命令见 [从源码构建](#build)。
+- **退得出去**：主菜单 `Quit` 在 480×320 上原本被裁掉（真 bug，已修）；另外**长按 Select + Start 1.5 秒**可在任何界面干净退出回前端。
 - **踩坑有据可查**：交叉产物启动即 SIGSEGV（glibc crt1 导致 C++ 静态构造不执行）、Mali 对 GLSL ES 1.00 的严格类型检查……根因与验证过程都在 [移植踩坑](#pitfalls) 和 [`docs/PORTING-FIXES.md`](docs/PORTING-FIXES.md)。
 - **60 FPS 上限**：`vsync true` + `frame_limit 60`，主菜单实测 ~52 FPS；MSAA 关闭、贴图过滤 1 档，优先保帧率。
 
@@ -93,6 +94,7 @@ RGB10 只有一组 ABXY、一个左摇杆、D-pad、L1/L2/R1/R2 —— 没有 C 
 | 按住 L1 时 | A/B/X/Y 的原动作被屏蔽，只输出 C 摇杆，不会误跳 / 误踢 |
 | Z | 默认绑 R2 轴（`0x101b`），同时保留了 X 键绑定（见 [已知限制](#limits)） |
 | Start / Select | 暂停菜单 / 玩家列表 |
+| **长按 Select + Start（1.5 秒）** | **干净退出游戏，回到 EmulationStation 前端** |
 
 > 为什么必须打补丁：sm64coopdx 的按键绑定每个动作只有 **3 个并列槽位**（键盘 / 手柄按钮 / 轴），没有「修饰键 + 组合键」概念，所以 L1 组合键在纯配置下无解。需要在 `controller_sdl_read()` 末尾做一次按键合成 —— 见 [`patches/0003-rgb10-controller-mapping.patch`](patches/0003-rgb10-controller-mapping.patch)。
 
@@ -104,10 +106,10 @@ RGB10 只有一组 ABXY、一个左摇杆、D-pad、L1/L2/R1/R2 —— 没有 C 
 
 ### 1. 下载 Release
 
-从 [Releases](https://github.com/TC635807/sm64coopdx-rgb10/releases) 下载 `sm64coopdx-rgb10-v1.0.0.tar.gz`（约 35 MB），解压得到：
+从 [Releases](https://github.com/TC635807/sm64coopdx-rgb10/releases) 下载 `sm64coopdx-rgb10-v1.0.1.tar.gz`（约 35 MB），解压得到：
 
 ```text
-sm64coopdx-rgb10-v1.0.0/
+sm64coopdx-rgb10-v1.0.1/
 ├── sm64coopdx.sh          # ArkOS Ports 启动器
 └── sm64coopdx/            # 游戏本体 + dynos / lang / mods / palettes
 ```
@@ -141,7 +143,7 @@ EmulationStation → **Ports** → **sm64coopdx**。
 
 - 单人：主菜单 `Host` → 直接开始
 - 联机：`Host` 建房 / `Join` 加入（需要真实互联网，见 [已知限制](#limits)）
-- 退出：游戏内 `Start` → 退出 / Stop Hosting → 主菜单 `Quit`
+- 退出：**长按 `Select` + `Start` 约 1.5 秒**（任何界面都能用，直接回前端）；也可以走菜单：`Start` → `Stop Hosting` / `Disconnect` → 主菜单 `Quit` → 确认
 
 > ⚠️ 一定要以 `ark` 用户启动（ES 的 Ports 机制本来就是这样）。以 `root` 启动会把用户目录当成 `/root`，游戏会找不到 ROM。
 
@@ -149,9 +151,9 @@ EmulationStation → **Ports** → **sm64coopdx**。
 
 ```bash
 # PC 侧
-scp sm64coopdx-rgb10-v1.0.0.tar.gz ark@<设备IP>:/tmp/
+scp sm64coopdx-rgb10-v1.0.1.tar.gz ark@<设备IP>:/tmp/
 scp -r scripts config ark@<设备IP>:/tmp/port/
-ssh ark@<设备IP> 'bash /tmp/port/scripts/deploy.sh --tarball /tmp/sm64coopdx-rgb10-v1.0.0.tar.gz --rom /path/to/your.z64'
+ssh ark@<设备IP> 'bash /tmp/port/scripts/deploy.sh --tarball /tmp/sm64coopdx-rgb10-v1.0.1.tar.gz --rom /path/to/your.z64'
 ```
 
 `deploy.sh` 会解包、归位、修权限、归一化 mtime、装启动器、写默认配置、装 ROM，最后自检。
@@ -165,10 +167,11 @@ sm64coopdx-rgb10/
 ├── README.md
 ├── CHANGELOG.md
 ├── NOTICE.md                     # 版权 / ROM / 免责声明
-├── patches/                      # 打在 upstream v1.5.1 上的 3 个补丁
+├── patches/                      # 打在 upstream v1.5.1 上的 4 个补丁
 │   ├── 0001-gles2-glsl-es-100-strictness.patch
 │   ├── 0002-coopnet-stdcxx-compat.patch
-│   └── 0003-rgb10-controller-mapping.patch
+│   ├── 0003-rgb10-controller-mapping.patch
+│   └── 0004-rgb10-quit-hotkey-and-menu-layout.patch
 ├── scripts/
 │   ├── apply-patches.sh          # 拉 upstream v1.5.1 后一键打补丁
 │   ├── build-cross.sh            # aarch64 交叉构建（需 sysroot，见 docs/CROSS-BUILD.md）
@@ -179,7 +182,7 @@ sm64coopdx-rgb10/
 │   ├── sm64config.txt            # 默认配置（含最终控制方案）
 │   └── gamecontrollerdb.txt      # 手柄映射数据库（247 条）
 ├── docs/
-│   ├── PORTING-FIXES.md          # 4 个移植问题的根因与修复
+│   ├── PORTING-FIXES.md          # 5 个移植问题的根因与修复
 │   ├── CROSS-BUILD.md            # 交叉工具链、5 个兼容问题、校验方法
 │   └── img/                      # 实机照片
 ├── toolchain/
@@ -228,7 +231,7 @@ make TARGET_RPI=1 machine=aarch64 CROSS=aarch64-linux-gnu- -j$(nproc)
 
 ```bash
 bash scripts/package-release.sh build/us_pc/sm64coopdx.arm --version v1.0.0
-# 输出 dist/sm64coopdx-rgb10-v1.0.0.tar.gz（默认 strip 到 ~52MB，要调试符号加 --no-strip）
+# 输出 dist/sm64coopdx-rgb10-v1.0.1.tar.gz（默认 strip 到 ~52MB，要调试符号加 --no-strip）
 ```
 
 <a id="pitfalls"></a>
@@ -241,6 +244,7 @@ bash scripts/package-release.sh build/us_pc/sm64coopdx.arm --version v1.0.0
 | 2 | 交叉产物启动即 SIGSEGV，崩在 `dynos_smlua_clear_gfx_command_cache()` | 交叉工具链自带的 `crt1.o`（glibc 2.34+）不再向 `__libc_start_main` 传 init 指针，设备 glibc 2.30 不执行 `.init_array` → **所有 C++ 全局构造被跳过** | wrapper 加 `-B<sysroot>/usr/lib/aarch64-linux-gnu/`，强制用设备 crt |
 | 3 | `Fragment shader compilation failed: 0:94: Type mismatch ... float and int` | Mali 对 GLSL ES 1.00 严格，桌面 GL 放行的 int/float 隐式转换在这里直接报错 | `gfx_opengl.c` 两处：`- 2` → `- 2.0`，`int levels = int(...)` → `float levels = ...` |
 | 4 | D-pad 不识别 / 没有 C 摇杆 | 绑定系统无组合键；D-pad 默认被当成相机方向键 | SDL 层补丁：D-pad → 左摇杆，L1+ABXY → C 按钮（`0003`） |
+| 5 | 无法退出游戏回前端（主菜单看不到 Quit） | 480×320 下 DJUI 面板放不下 logo + 4 个按钮，第 4 个按钮被裁掉；`Stop Hosting` 能回主菜单，但主菜单里没有出口 | 释放空 header 并把 logo 缩到 420×210，4 个按钮全部可见；另加 Select+Start 长按 1.5 秒直接 `game_exit()`（`0004`） |
 
 另有 5 个兼容点在 [`docs/CROSS-BUILD.md`](docs/CROSS-BUILD.md)：eoan SDL2 2.0.10 头缺 `preciseX/preciseY`、`gcc -E` 不认 `.mk` 导致 `level_headers.h` 为空、g++12 头文件与 glibc 2.30 混用、预编译 `libcoopnet-arm64.a` 引用 GCC11 新符号（`0002` 补丁）、glibc 2.30 的 `shm_open` 在 librt。
 
@@ -262,7 +266,7 @@ bash scripts/package-release.sh build/us_pc/sm64coopdx.arm --version v1.0.0
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/PORTING-FIXES.md`](docs/PORTING-FIXES.md) | 4 个移植问题的现象、证据链、根因、修复与验证 |
+| [`docs/PORTING-FIXES.md`](docs/PORTING-FIXES.md) | 5 个移植问题的现象、证据链、根因、修复与验证 |
 | [`docs/CROSS-BUILD.md`](docs/CROSS-BUILD.md) | 交叉工具链组成、5 个兼容问题、产物符号版本校验 |
 | [`NOTICE.md`](NOTICE.md) | ROM / 素材版权、上游归属、免责声明 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 版本变更 |
